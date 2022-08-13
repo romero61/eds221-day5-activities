@@ -10,7 +10,24 @@ knitr::opts_chunk$set(echo = TRUE)
 library(here)
 library(janitor)
 library(tidyverse)
+library(xkcd)
+library(ggthemr)
 ```
+```{r}
+{r}
+penguins_year_chr <- penguins |>
+  mutate((year = as.character(year)))
+
+penguinss_year_num <- penguins_year_chr |> 
+  mutate(year = as.numeric(year))
+
+# in operator does that value of that variable exist within this vector( when looking for a multiples )
+
+penguins_ad_ch <- penguins_year_num |> 
+  filter(species %in% c("Adelie", "Chinstrap"))
+```
+
+
 Create a new .Rmd in your docs folder called us_tilapia_imports.Rmd
 
 Attach the tidyverse, here and janitor packages
@@ -37,12 +54,36 @@ Check the class of the year column. What is it, and why do you think that’s th
 
 Use dplyr::group_by() %>% summarize() to find the total US tilapia imports by year, store as yearly_tilapia_tot
 ```{r}
-yearly_tilapia_tot <- us_tilapia_imports |> group_by(country)
+yearly_tilapia_tot <- us_tilapia_imports |> group_by(year) |>   summarize(across(where(is.numeric), sum, na.rm = TRUE))
+yearly_tilapia_tot
 ```
 
  
 Create a ggplot line graph of total US tilapia imports for all years in yearly_tilapia_tot. Update axis labels (include units as necessary), then export your graph as a .png to figs.
+```{r}
+ggthemr("earth", type = "outer")
+
+ggplot(data = yearly_tilapia_tot) + geom_line(aes(x = year, y = imports)) + scale_y_continuous( labels = scales::label_number()) + scale_x_continuous(breaks = c(1990, 2000,2010,2020))
+#RColorBrewer::display.brewer.all(), breaks = c(100000, 200000, 300000),
+
+ggsave(here::here("figs", "yearltilapia_tot.png"))
+```
 
 Create a subset that only retains imports from Ecuador, Honduras, Costa Rica, and Mexico (you decide what to name this)
 
+```{r}
+country_subset <- us_tilapia_imports |> filter(country == c("Ecuador", "Honduras","Costa Rica", "Mexico"), na.rm = TRUE) 
+country_subset
+
+```
+
 Create a ggplot graph of total US tilapia imports over time, for those four countries in the subset you created above, separated by country. Update axis labels, add a title, customize your color scheme, update the theme. Export a .jpg of your graph to figs.
+
+
+```{r}
+ggthemr("solarized", type = "outer")
+ggplot(country_subset, aes(x = year, y = imports)) + geom_line(aes(color = country))  
+
+ggsave(here::here("figs","country_subet.jpg"))
+```
+
